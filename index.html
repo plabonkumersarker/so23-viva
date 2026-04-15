@@ -11,7 +11,6 @@
     --text: #1a1a1a;
     --card: #ffffff;
     --accent: #3b82f6;
-    --muted: #6b7280;
 }
 
 body.dark {
@@ -19,7 +18,6 @@ body.dark {
     --text: #e5e7eb;
     --card: #1e293b;
     --accent: #60a5fa;
-    --muted: #9ca3af;
 }
 
 body {
@@ -42,7 +40,6 @@ header {
     border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-/* TOP ROW */
 .top-bar {
     display: flex;
     justify-content: space-between;
@@ -60,10 +57,6 @@ h1 {
 }
 
 /* SEARCH */
-.search-box {
-    width: 100%;
-}
-
 .search-box input {
     width: 100%;
     padding: 10px 12px;
@@ -97,7 +90,7 @@ h1 {
 }
 
 .text {
-    font-size: 16px;
+    font-size: 16.5px;
     line-height: 1.7;
 }
 
@@ -106,28 +99,43 @@ h1 {
     position: fixed;
     top: 0;
     right: 0;
-    width: 5px;
+    width: 4px;
     height: 0%;
     background: var(--accent);
-}
-
-/* LEFT SCROLL SLIDER */
-#scrollSlider {
-    position: fixed;
-    left: 5px;
-    top: 50%;
-    transform: translateY(-50%) rotate(-90deg);
-    width: 200px;
     z-index: 200;
 }
 
-#scrollSlider input {
+/* PDF STYLE SCROLL */
+#pdfScroll {
+    position: fixed;
+    right: 8px;
+    top: 90px;
+    width: 8px;
+    height: calc(100vh - 110px);
+    background: rgba(0,0,0,0.08);
+    border-radius: 10px;
+    z-index: 300;
+}
+
+body.dark #pdfScroll {
+    background: rgba(255,255,255,0.1);
+}
+
+#thumb {
     width: 100%;
+    height: 60px;
+    background: var(--accent);
+    border-radius: 10px;
+    cursor: grab;
+}
+
+#thumb:hover {
+    background: #2563eb;
 }
 
 /* MOBILE */
 @media(max-width:600px){
-    #scrollSlider {
+    #pdfScroll {
         display: none;
     }
 }
@@ -138,14 +146,14 @@ h1 {
 
 <div id="progressBar"></div>
 
-<!-- LEFT SCROLL -->
-<div id="scrollSlider">
-    <input type="range" min="0" max="100" value="0" id="slider">
+<!-- PDF STYLE SCROLL -->
+<div id="pdfScroll">
+    <div id="thumb"></div>
 </div>
 
 <header>
     <div class="top-bar">
-        <h1>📚 SO-23 Viva Experiences</h1>
+        <h1>📚 SO23 Viva Experiences</h1>
         <div class="toggle" onclick="toggleTheme()" id="icon">🌙</div>
     </div>
 
@@ -162,54 +170,46 @@ import { vivaData } from './v.data.js';
 const container = document.getElementById("content");
 let allCards = [];
 
-function loadData() {
-    vivaData.forEach(item => {
-        let raw = item.questions;
-        let entries = raw.split("},").map(e => e + "}");
+vivaData.forEach(item => {
+    let raw = item.questions;
+    let entries = raw.split("},").map(e => e + "}");
 
-        entries.forEach(entry => {
-            try {
-                let idMatch = entry.match(/"id":\s*(\d+)/);
-                let textMatch = entry.match(/"text":\s*"([^"]+)/);
-                let lengthMatch = entry.match(/"length":\s*(\d+)/);
+    entries.forEach(entry => {
+        try {
+            let idMatch = entry.match(/"id":\s*(\d+)/);
+            let textMatch = entry.match(/"text":\s*"([^"]+)/);
+            let lengthMatch = entry.match(/"length":\s*(\d+)/);
 
-                if (!idMatch || !textMatch || !lengthMatch) return;
+            if (!idMatch || !textMatch || !lengthMatch) return;
 
-                let id = idMatch[1];
-                let text = textMatch[1];
-                let length = parseInt(lengthMatch[1]);
+            let id = idMatch[1];
+            let text = textMatch[1];
+            let length = parseInt(lengthMatch[1]);
 
-                if (length > 350) {
-                    let div = document.createElement("div");
-                    div.className = "card";
-                    div.dataset.text = text.toLowerCase();
+            if (length > 350) {
+                let div = document.createElement("div");
+                div.className = "card";
+                div.dataset.text = text.toLowerCase();
 
-                    div.innerHTML = `
-                        <div class="id">ID • ${id}</div>
-                        <div class="text">${text}</div>
-                    `;
+                div.innerHTML = `
+                    <div class="id">ID • ${id}</div>
+                    <div class="text">${text}</div>
+                `;
 
-                    container.appendChild(div);
-                    allCards.push(div);
-                }
+                container.appendChild(div);
+                allCards.push(div);
+            }
 
-            } catch(e){}
-        });
+        } catch(e){}
     });
-}
-
-loadData();
+});
 
 /* SEARCH */
 document.getElementById("search").addEventListener("input", function(){
     let value = this.value.toLowerCase();
 
     allCards.forEach(card => {
-        if (card.dataset.text.includes(value)) {
-            card.style.display = "block";
-        } else {
-            card.style.display = "none";
-        }
+        card.style.display = card.dataset.text.includes(value) ? "block" : "none";
     });
 });
 </script>
@@ -221,21 +221,69 @@ function toggleTheme() {
         document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
-/* RIGHT PROGRESS */
-window.onscroll = () => {
+/* PROGRESS BAR */
+window.addEventListener("scroll", () => {
     let scroll = document.documentElement.scrollTop;
     let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     let percent = (scroll / height) * 100;
 
     document.getElementById("progressBar").style.height = percent + "%";
-    document.getElementById("slider").value = percent;
-};
-
-/* LEFT SLIDER CONTROL */
-document.getElementById("slider").addEventListener("input", function(){
-    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    document.documentElement.scrollTop = (this.value / 100) * height;
+    updateThumb();
 });
+
+/* PDF SCROLL */
+const thumb = document.getElementById("thumb");
+const track = document.getElementById("pdfScroll");
+
+let isDragging = false;
+
+function updateThumb() {
+    let scrollTop = document.documentElement.scrollTop;
+    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    let trackHeight = track.clientHeight;
+    let thumbHeight = thumb.clientHeight;
+
+    let top = (scrollTop / docHeight) * (trackHeight - thumbHeight);
+    thumb.style.transform = `translateY(${top}px)`;
+}
+
+/* CLICK TRACK */
+track.addEventListener("click", (e) => {
+    let rect = track.getBoundingClientRect();
+    let clickY = e.clientY - rect.top;
+
+    let percent = clickY / rect.height;
+    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+    document.documentElement.scrollTop = percent * docHeight;
+});
+
+/* DRAG */
+thumb.addEventListener("mousedown", () => {
+    isDragging = true;
+    thumb.style.cursor = "grabbing";
+});
+
+document.addEventListener("mouseup", () => {
+    isDragging = false;
+    thumb.style.cursor = "grab";
+});
+
+document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+
+    let rect = track.getBoundingClientRect();
+    let offsetY = e.clientY - rect.top;
+
+    let percent = offsetY / rect.height;
+    percent = Math.max(0, Math.min(1, percent));
+
+    let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    document.documentElement.scrollTop = percent * docHeight;
+});
+
+/* INIT */
+updateThumb();
 </script>
 
 </body>
