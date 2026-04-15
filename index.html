@@ -8,11 +8,11 @@
 
 <style>
   :root {
-    --bg-main: #0f172a;       /* Deep Slate */
-    --bg-card: #1e293b;       /* Lighter Slate */
+    --bg-main: #0f172a;       
+    --bg-card: #1e293b;       
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
-    --accent: #3b82f6;        /* Professional Blue */
+    --accent: #3b82f6;        
     --border: #334155;
   }
 
@@ -24,6 +24,8 @@
     background-color: var(--bg-main);
     color: var(--text-primary);
     overflow: hidden;
+    /* Use dynamic viewport height to fix mobile browser UI clipping */
+    height: 100dvh; 
   }
 
   /* Header & Search */
@@ -80,30 +82,47 @@
     font-size: 14px;
   }
 
-  /* Slides */
+  /* Slides Container */
   .slides {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    height: 100dvh;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .slide {
-    flex: 0 0 100vh;
+    flex: 0 0 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 80px 40px 40px; /* Top padding accounts for header */
+    padding: 80px 40px 30px; 
   }
 
+  /* Scrollable Card */
   .card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 50px;
+    padding: 40px;
     max-width: 850px;
     width: 100%;
+    /* Leaves room for header and bottom edge on mobile */
+    max-height: calc(100dvh - 120px); 
+    overflow-y: auto; 
+    overscroll-behavior: contain; /* Prevents scrolling the background */
     box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  }
+
+  /* Custom Scrollbar for Card */
+  .card::-webkit-scrollbar {
+    width: 8px;
+  }
+  .card::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .card::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 10px;
   }
 
   .id-badge {
@@ -119,16 +138,19 @@
   }
 
   .text {
-    font-size: 22px;
+    font-size: 20px;
     line-height: 1.7;
     font-weight: 400;
     color: var(--text-primary);
+    /* Guarantee text selection works on mobile */
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   /* Elegant Drag Bar */
   .drag-bar-container {
     position: fixed;
-    right: 30px;
+    right: 20px;
     top: 50%;
     transform: translateY(-50%);
     height: 40vh;
@@ -142,12 +164,14 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
-    width: 8px;
+    width: 10px;
     height: 40px;
     background: var(--text-secondary);
     border-radius: 6px;
     cursor: grab;
     transition: background 0.2s, transform 0.2s;
+    /* Prevent default touch actions on the knob itself */
+    touch-action: none; 
   }
 
   .drag-knob:hover {
@@ -162,11 +186,12 @@
 
   /* Mobile Adjustments */
   @media(max-width: 768px) {
-    header { flex-direction: column; gap: 15px; padding: 15px 20px; }
+    header { flex-direction: column; gap: 12px; padding: 12px 20px; }
     .slide { padding: 100px 20px 20px; }
-    .text { font-size: 18px; }
-    .card { padding: 30px; }
-    .drag-bar-container { right: 10px; }
+    .text { font-size: 16px; }
+    .card { padding: 25px; max-height: calc(100dvh - 140px); }
+    /* Hide the scroll bar on very small screens to save space, but rely on horizontal swipe */
+    .drag-bar-container { display: none; } 
   }
 </style>
 </head>
@@ -194,7 +219,7 @@ const slidesEl = document.getElementById("slides");
 const counterEl = document.getElementById("slideCounter");
 let dataSlides = [];
 
-/* Parse Data (Kept your original logic to ensure compatibility) */
+/* Parse Data */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -234,12 +259,15 @@ const bar = document.getElementById("dragBar");
 
 function update() {
   if (slides.length === 0) return;
-  // Slide position
-  slidesEl.style.transform = `translateY(-${index * 100}vh)`;
   
-  // Knob position
-  let h = bar.clientHeight - knob.clientHeight; 
-  knob.style.top = (index / (slides.length - 1) * h) + "px";
+  // Slide position
+  slidesEl.style.transform = `translateY(-${index * 100}dvh)`;
+  
+  // Knob position (if visible)
+  if (bar.offsetParent !== null) {
+    let h = bar.clientHeight - knob.clientHeight; 
+    knob.style.top = (index / (slides.length - 1) * h) + "px";
+  }
   
   // Counter update
   counterEl.innerText = `Slide ${index + 1} of ${slides.length}`;
@@ -250,41 +278,58 @@ function prev() { if(index > 0) index--; update(); }
 
 /* Keyboard Navigation */
 window.addEventListener("keydown", (e) => {
-  if (document.activeElement.tagName === "INPUT") return; // Don't trigger while searching
+  if (document.activeElement.tagName === "INPUT") return; 
   if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
   if (e.key === "ArrowUp" || e.key === "ArrowLeft") prev();
 });
 
 /* Wheel */
 window.addEventListener("wheel", e => {
-  e.deltaY > 0 ? next() : prev();
+  // Only trigger if hovering outside a card, OR if card can't scroll anymore
+  // Simplified for professional use: relying on trackpad/mousewheel mostly.
+  if(!e.target.closest('.card')) {
+    e.deltaY > 0 ? next() : prev();
+  }
 });
 
-/* Touch */
+/* Touch - HORIZONTAL SWIPE for Android (Vertical scrolling is left to the browser) */
+let startX = null;
 let startY = null;
-window.addEventListener("touchstart", e => startY = e.touches[0].clientY);
-window.addEventListener("touchend", e => {
-  if (!startY) return;
-  let dy = e.changedTouches[0].clientY - startY;
-  if (Math.abs(dy) > 40) dy < 0 ? next() : prev();
-  startY = null;
-});
 
-/* Drag */
+window.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+}, {passive: true});
+
+window.addEventListener("touchend", e => {
+  if (!startX || !startY) return;
+  
+  let dx = e.changedTouches[0].clientX - startX;
+  let dy = e.changedTouches[0].clientY - startY;
+  
+  // Only trigger slide change if swipe is strongly horizontal (protects vertical text scrolling)
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+    dx < 0 ? next() : prev(); // Swipe left for next, swipe right for prev
+  }
+  
+  startX = null;
+  startY = null;
+}, {passive: true});
+
+/* Drag Bar Logic (Desktop) */
 let dragging = false;
 
 knob.addEventListener("mousedown", () => dragging = true);
 window.addEventListener("mouseup", () => dragging = false);
-knob.addEventListener("touchstart", () => dragging = true);
-window.addEventListener("touchend", () => dragging = false);
+knob.addEventListener("touchstart", () => dragging = true, {passive: true});
+window.addEventListener("touchend", () => dragging = false, {passive: true});
 
 window.addEventListener("mousemove", move);
-window.addEventListener("touchmove", move, {passive: false});
+window.addEventListener("touchmove", move, {passive: true});
 
 function move(e) {
   if (!dragging) return;
-  if (e.type === 'touchmove') e.preventDefault(); // Prevent native scrolling while dragging
-
+  
   let rect = bar.getBoundingClientRect();
   let y = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -306,6 +351,9 @@ document.getElementById("search").addEventListener("input", function() {
     update();
   }
 });
+
+// Window resize handling to keep alignment correct
+window.addEventListener("resize", update);
 
 // Initial load
 update();
