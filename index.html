@@ -33,10 +33,10 @@ header {
     top: 0;
     z-index: 100;
     background: var(--card);
-    padding: 12px 20px;
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
@@ -47,7 +47,7 @@ header {
 }
 
 h1 {
-    font-size: 18px;
+    font-size: 16px;
     margin: 0;
 }
 
@@ -59,85 +59,80 @@ h1 {
 /* SEARCH */
 .search-box input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px;
     border-radius: 10px;
     border: none;
     outline: none;
     background: var(--bg);
-    font-size: 14.5px;
+    font-size: 14px;
 }
 
 /* CONTENT */
 .container {
     max-width: 850px;
-    margin: 25px auto;
-    padding: 0 16px;
+    margin: 20px auto;
+    padding: 0 12px;
 }
 
 .card {
     background: var(--card);
-    padding: 20px;
-    margin-bottom: 15px;
+    padding: 18px;
+    margin-bottom: 14px;
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
 }
 
 .id {
     color: var(--accent);
     font-size: 12px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: bold;
 }
 
 .text {
-    font-size: 16.5px;
+    font-size: 16px;
     line-height: 1.7;
 }
 
-/* RIGHT PROGRESS */
+/* PROGRESS BAR */
 #progressBar {
     position: fixed;
     top: 0;
     right: 0;
-    width: 4px;
+    width: 3px;
     height: 0%;
     background: var(--accent);
-    z-index: 200;
 }
 
-/* PDF STYLE SCROLL */
+/* PDF SCROLL (Mobile Ready) */
 #pdfScroll {
     position: fixed;
-    right: 8px;
+    right: 4px;
     top: 90px;
-    width: 8px;
+    width: 14px;
     height: calc(100vh - 110px);
-    background: rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.05);
     border-radius: 10px;
-    z-index: 300;
+    z-index: 200;
+    touch-action: none;
 }
 
 body.dark #pdfScroll {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.08);
 }
 
 #thumb {
     width: 100%;
-    height: 60px;
     background: var(--accent);
     border-radius: 10px;
-    cursor: grab;
-}
-
-#thumb:hover {
-    background: #2563eb;
+    position: absolute;
+    top: 0;
+    height: 60px;
 }
 
 /* MOBILE */
 @media(max-width:600px){
-    #pdfScroll {
-        display: none;
-    }
+    .text { font-size: 15.5px; }
 }
 </style>
 </head>
@@ -146,7 +141,6 @@ body.dark #pdfScroll {
 
 <div id="progressBar"></div>
 
-<!-- PDF STYLE SCROLL -->
 <div id="pdfScroll">
     <div id="thumb"></div>
 </div>
@@ -158,7 +152,7 @@ body.dark #pdfScroll {
     </div>
 
     <div class="search-box">
-        <input type="text" id="search" placeholder="🔍 Search viva questions...">
+        <input type="text" id="search" placeholder="🔍 Search viva...">
     </div>
 </header>
 
@@ -206,10 +200,9 @@ vivaData.forEach(item => {
 
 /* SEARCH */
 document.getElementById("search").addEventListener("input", function(){
-    let value = this.value.toLowerCase();
-
+    let val = this.value.toLowerCase();
     allCards.forEach(card => {
-        card.style.display = card.dataset.text.includes(value) ? "block" : "none";
+        card.style.display = card.dataset.text.includes(val) ? "block" : "none";
     });
 });
 </script>
@@ -221,68 +214,75 @@ function toggleTheme() {
         document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
-/* PROGRESS BAR */
-window.addEventListener("scroll", () => {
-    let scroll = document.documentElement.scrollTop;
-    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    let percent = (scroll / height) * 100;
-
-    document.getElementById("progressBar").style.height = percent + "%";
-    updateThumb();
-});
-
-/* PDF SCROLL */
+/* SCROLL + PROGRESS */
 const thumb = document.getElementById("thumb");
 const track = document.getElementById("pdfScroll");
-
-let isDragging = false;
 
 function updateThumb() {
     let scrollTop = document.documentElement.scrollTop;
     let docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    let trackHeight = track.clientHeight;
-    let thumbHeight = thumb.clientHeight;
 
-    let top = (scrollTop / docHeight) * (trackHeight - thumbHeight);
-    thumb.style.transform = `translateY(${top}px)`;
+    let trackHeight = track.clientHeight;
+
+    // dynamic height
+    let thumbHeight = Math.max((window.innerHeight / document.documentElement.scrollHeight) * trackHeight, 40);
+    thumb.style.height = thumbHeight + "px";
+
+    let maxMove = trackHeight - thumbHeight;
+    let top = (scrollTop / docHeight) * maxMove;
+
+    thumb.style.top = top + "px";
+
+    // progress bar
+    document.getElementById("progressBar").style.height = (scrollTop / docHeight) * 100 + "%";
 }
+
+window.addEventListener("scroll", updateThumb);
 
 /* CLICK TRACK */
 track.addEventListener("click", (e) => {
+    if (e.target === thumb) return;
+
     let rect = track.getBoundingClientRect();
-    let clickY = e.clientY - rect.top;
+    let percent = (e.clientY - rect.top) / rect.height;
 
-    let percent = clickY / rect.height;
     let docHeight = document.documentElement.scrollHeight - window.innerHeight;
-
     document.documentElement.scrollTop = percent * docHeight;
 });
 
-/* DRAG */
-thumb.addEventListener("mousedown", () => {
-    isDragging = true;
-    thumb.style.cursor = "grabbing";
-});
+/* DRAG SUPPORT (TOUCH + MOUSE) */
+let dragging = false;
 
-document.addEventListener("mouseup", () => {
-    isDragging = false;
-    thumb.style.cursor = "grab";
-});
+function startDrag(e) {
+    dragging = true;
+}
 
-document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
+function stopDrag() {
+    dragging = false;
+}
+
+function moveDrag(e) {
+    if (!dragging) return;
+
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
     let rect = track.getBoundingClientRect();
-    let offsetY = e.clientY - rect.top;
+    let percent = (clientY - rect.top) / rect.height;
 
-    let percent = offsetY / rect.height;
     percent = Math.max(0, Math.min(1, percent));
 
     let docHeight = document.documentElement.scrollHeight - window.innerHeight;
     document.documentElement.scrollTop = percent * docHeight;
-});
+}
 
-/* INIT */
+thumb.addEventListener("mousedown", startDrag);
+document.addEventListener("mouseup", stopDrag);
+document.addEventListener("mousemove", moveDrag);
+
+thumb.addEventListener("touchstart", startDrag);
+document.addEventListener("touchend", stopDrag);
+document.addEventListener("touchmove", moveDrag);
+
 updateThumb();
 </script>
 
