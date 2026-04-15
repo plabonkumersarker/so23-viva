@@ -6,81 +6,69 @@
 <title>Viva Experiences</title>
 
 <style>
-    :root {
-        --bg: #f5f7fa;
-        --text: #222;
-        --card: #ffffff;
-        --accent: #4a90e2;
-    }
+:root {
+    --bg: #f5f7fa;
+    --text: #222;
+    --card: #fff;
+    --accent: #4a90e2;
+}
 
-    body.dark {
-        --bg: #121212;
-        --text: #e0e0e0;
-        --card: #1e1e1e;
-        --accent: #90caf9;
-    }
+body.dark {
+    --bg: #121212;
+    --text: #e0e0e0;
+    --card: #1e1e1e;
+    --accent: #90caf9;
+}
 
-    body {
-        margin: 0;
-        font-family: "Segoe UI", sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        transition: 0.3s;
-    }
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
 
-    header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 20px;
-        background: var(--card);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background: var(--card);
+    position: sticky;
+    top: 0;
+}
 
-    h1 {
-        font-size: 18px;
-        margin: 0;
-    }
+.toggle {
+    cursor: pointer;
+    font-size: 20px;
+}
 
-    .toggle {
-        cursor: pointer;
-        font-size: 20px;
-    }
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 10px;
+}
 
-    .container {
-        max-width: 800px;
-        margin: 20px auto;
-        padding: 10px;
-    }
+.card {
+    background: var(--card);
+    padding: 15px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+}
 
-    .card {
-        background: var(--card);
-        padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        line-height: 1.6;
-    }
+.id {
+    color: var(--accent);
+    font-weight: bold;
+    margin-bottom: 6px;
+}
 
-    .id {
-        font-weight: bold;
-        color: var(--accent);
-        margin-bottom: 8px;
-    }
-
-    /* Scroll progress bar */
-    #progressBar {
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 6px;
-        height: 0%;
-        background: var(--accent);
-        z-index: 200;
-    }
+/* Scroll bar */
+#progressBar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 0%;
+    background: var(--accent);
+}
 </style>
 </head>
 
@@ -89,8 +77,8 @@
 <div id="progressBar"></div>
 
 <header>
-    <h1>📚 Viva Experiences</h1>
-    <div class="toggle" onclick="toggleTheme()" id="themeIcon">🌙</div>
+    <h3>📚 Viva Experiences</h3>
+    <div class="toggle" onclick="toggleTheme()" id="icon">🌙</div>
 </header>
 
 <div class="container" id="content"></div>
@@ -100,46 +88,56 @@ import { vivaData } from './v.data.js';
 
 const container = document.getElementById("content");
 
-// Filter and render
 vivaData.forEach(item => {
-    try {
-        let parsed = typeof item.questions === "string"
-            ? JSON.parse("[" + item.questions + "]")
-            : item.questions;
 
-        parsed.forEach(q => {
-            if (q.length > 350) {
-                const card = document.createElement("div");
-                card.className = "card";
+    let raw = item.questions;
 
-                card.innerHTML = `
-                    <div class="id">ID: ${q.id}</div>
-                    <div>${q.text}</div>
+    // Split entries manually
+    let entries = raw.split("},").map(e => e + "}");
+
+    entries.forEach(entry => {
+        try {
+            let idMatch = entry.match(/"id":\s*(\d+)/);
+            let textMatch = entry.match(/"text":\s*"([^"]+)/);
+            let lengthMatch = entry.match(/"length":\s*(\d+)/);
+
+            if (!idMatch || !textMatch || !lengthMatch) return;
+
+            let id = idMatch[1];
+            let text = textMatch[1];
+            let length = parseInt(lengthMatch[1]);
+
+            if (length > 350) {
+                let div = document.createElement("div");
+                div.className = "card";
+
+                div.innerHTML = `
+                    <div class="id">ID: ${id}</div>
+                    <div>${text}</div>
                 `;
 
-                container.appendChild(card);
+                container.appendChild(div);
             }
-        });
-    } catch (e) {
-        console.warn("Parsing error:", e);
-    }
+
+        } catch (err) {
+            console.log("skip error", err);
+        }
+    });
 });
 </script>
 
 <script>
-// Theme toggle
 function toggleTheme() {
     document.body.classList.toggle("dark");
-    const icon = document.getElementById("themeIcon");
-    icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    document.getElementById("icon").textContent =
+        document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
 // Scroll progress
-window.onscroll = function () {
-    let winScroll = document.documentElement.scrollTop;
+window.onscroll = () => {
+    let scroll = document.documentElement.scrollTop;
     let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    let scrolled = (winScroll / height) * 100;
-    document.getElementById("progressBar").style.height = scrolled + "%";
+    document.getElementById("progressBar").style.height = (scroll / height) * 100 + "%";
 };
 </script>
 
