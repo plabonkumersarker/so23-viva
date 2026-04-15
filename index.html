@@ -3,37 +3,50 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Viva Experiences</title>
+<title>SO23 Viva Experiences</title>
 
 <style>
 :root {
-    --bg: #f5f7fa;
-    --text: #222;
-    --card: #fff;
-    --accent: #4a90e2;
+    --bg: #f4f6fb;
+    --text: #1a1a1a;
+    --card: #ffffff;
+    --accent: #3b82f6;
+    --muted: #6b7280;
 }
 
 body.dark {
-    --bg: #121212;
-    --text: #e0e0e0;
-    --card: #1e1e1e;
-    --accent: #90caf9;
+    --bg: #0f172a;
+    --text: #e5e7eb;
+    --card: #1e293b;
+    --accent: #60a5fa;
+    --muted: #9ca3af;
 }
 
 body {
     margin: 0;
-    font-family: sans-serif;
+    font-family: "Inter", "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--text);
+    transition: 0.3s;
 }
 
+/* Header */
 header {
     display: flex;
     justify-content: space-between;
-    padding: 15px;
+    align-items: center;
+    padding: 18px 24px;
     background: var(--card);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 20px;
+    margin: 0;
+    letter-spacing: 0.5px;
 }
 
 .toggle {
@@ -41,23 +54,42 @@ header {
     font-size: 20px;
 }
 
+/* Container */
 .container {
-    max-width: 800px;
-    margin: auto;
-    padding: 10px;
+    max-width: 850px;
+    margin: 30px auto;
+    padding: 0 16px;
 }
 
+/* Card */
 .card {
     background: var(--card);
-    padding: 15px;
-    margin-bottom: 12px;
-    border-radius: 10px;
+    padding: 22px 20px;
+    margin-bottom: 18px;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: 0.2s;
 }
 
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* ID */
 .id {
+    font-size: 13px;
+    font-weight: 600;
     color: var(--accent);
-    font-weight: bold;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+/* Text */
+.text {
+    font-size: 16.5px;
+    line-height: 1.75;
+    letter-spacing: 0.2px;
+    color: var(--text);
 }
 
 /* Scroll bar */
@@ -65,9 +97,23 @@ header {
     position: fixed;
     top: 0;
     right: 0;
-    width: 6px;
+    width: 5px;
     height: 0%;
-    background: var(--accent);
+    background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+    z-index: 200;
+    border-radius: 10px;
+}
+
+/* Improve readability for long study */
+.text::selection {
+    background: #c7d2fe;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    .text {
+        font-size: 15.5px;
+    }
 }
 </style>
 </head>
@@ -77,7 +123,7 @@ header {
 <div id="progressBar"></div>
 
 <header>
-    <h3>📚 Viva Experiences</h3>
+    <h1>📚 SO23 Viva Experiences</h1>
     <div class="toggle" onclick="toggleTheme()" id="icon">🌙</div>
 </header>
 
@@ -89,10 +135,8 @@ import { vivaData } from './v.data.js';
 const container = document.getElementById("content");
 
 vivaData.forEach(item => {
-
     let raw = item.questions;
 
-    // Split entries manually
     let entries = raw.split("},").map(e => e + "}");
 
     entries.forEach(entry => {
@@ -112,16 +156,14 @@ vivaData.forEach(item => {
                 div.className = "card";
 
                 div.innerHTML = `
-                    <div class="id">ID: ${id}</div>
-                    <div>${text}</div>
+                    <div class="id">VIVA ID • ${id}</div>
+                    <div class="text">${text}</div>
                 `;
 
                 container.appendChild(div);
             }
 
-        } catch (err) {
-            console.log("skip error", err);
-        }
+        } catch (err) {}
     });
 });
 </script>
