@@ -53,19 +53,12 @@
     color: var(--text-secondary);
   }
 
-  /* Professional Visitor Counter Styling */
   .visitor-counter {
     font-size: 10px;
     color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    opacity: 0.8;
-  }
-
-  .visitor-counter img {
-    height: 12px;
-    filter: invert(1) hue-rotate(180deg); /* Adjusts color to match blue theme */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
   }
 
   .search-container {
@@ -156,10 +149,7 @@
   </div>
   <div class="stats-container">
     <div class="counter-text" id="stats">0 Results</div>
-    <div class="visitor-counter">
-        <span>VIEWS:</span>
-        <img src="https://hishats.com/v1/s?id=so23-viva-counter&label=&color=3b82f6" alt="Counter">
-    </div>
+    <div class="visitor-counter" id="visitorCount">Views: ...</div>
   </div>
 </header>
 
@@ -173,9 +163,23 @@ import { vivaData } from './v.data.js';
 const mainContent = document.getElementById("mainContent");
 const stats = document.getElementById("stats");
 const noResults = document.getElementById("noResults");
+const visitorDisplay = document.getElementById("visitorCount");
+
 let dataSlides = [];
 
-/* 1. Parse Data */
+/* 1. API Counting System (No Setup) */
+async function trackVisitors() {
+  try {
+    // This uses CountAPI with a unique keyword to track hits
+    const response = await fetch('https://api.countapi.xyz/hit/so23-viva-project/visits');
+    const data = await response.json();
+    visitorDisplay.innerText = `Views: ${data.value}`;
+  } catch (err) {
+    visitorDisplay.innerText = `Live`;
+  }
+}
+
+/* 2. Parse Data */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -190,7 +194,7 @@ vivaData.forEach(item => {
   });
 });
 
-/* 2. Render State */
+/* 3. Render State */
 function renderSections() {
   dataSlides.forEach((d) => {
     let section = document.createElement("article");
@@ -205,13 +209,13 @@ function renderSections() {
   updateCount();
 }
 
-/* 3. Update UI Count */
+/* 4. Update UI Count */
 function updateCount() {
   const visible = document.querySelectorAll(".viva-section[style='display: block;'], .viva-section:not([style])").length;
   stats.innerText = `${visible} Results`;
 }
 
-/* 4. Filter Logic */
+/* 5. Filter Logic */
 document.getElementById("search").addEventListener("input", function() {
   const query = this.value.toLowerCase().trim();
   const allSections = document.querySelectorAll(".viva-section");
@@ -232,6 +236,8 @@ document.getElementById("search").addEventListener("input", function() {
   updateCount();
 });
 
+// Run everything
+trackVisitors();
 renderSections();
 </script>
 
