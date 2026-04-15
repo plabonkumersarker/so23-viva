@@ -146,6 +146,7 @@
   }
 
   @media(max-width: 600px) {
+    .content-text { font-size: 16px; }
     header { padding: 10px; }
     .viva-section { padding: 30px 0; }
   }
@@ -157,7 +158,7 @@
 <header>
   <div class="search-container">
     <span class="search-icon">🔍</span>
-    <input type="text" id="search" placeholder="Search keyword...">
+    <input type="text" id="search" placeholder="Search viva keyword...">
   </div>
   <div class="stats-container">
     <div class="counter-text" id="stats">0 Results</div>
@@ -179,21 +180,28 @@ const visitorDisplay = document.getElementById("visitorCount");
 
 let dataSlides = [];
 
-/* --- RELIABLE VISITOR TRACKING --- */
-async function getViews() {
-  const KEYWORD = 'so23_viva_main_count';
-  try {
-    // Switching to a more stable public hit counter
-    const response = await fetch(`https://api.countapi.xyz/hit/plabon_viva_v3/${KEYWORD}`);
-    const data = await response.json();
-    visitorDisplay.innerText = `VIEWS: ${data.value}`;
-  } catch (err) {
-    // Fallback if API is blocked by ISP or down
-    visitorDisplay.innerText = `ONLINE`;
-  }
+/* --- ROBUST VISITOR TRACKING (NO SETUP) --- */
+function trackVisitor() {
+  // Use a reliable keyword-based hit image
+  const keyword = "plabon-viva-experience-2026";
+  const img = new Image();
+  // Using a tracking pixel that actually works
+  img.src = `https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fplabon-viva%2F${keyword}&count_bg=%233B82F6&title_bg=%231E293B&icon=&icon_color=%23E7E7E7&title=views&edge_flat=false`;
+  
+  // Since we are using an image badge, we extract a dummy number or just show "Active"
+  // If you want a REAL number, use this logic to fetch the specific JSON:
+  fetch(`https://api.countapi.xyz/hit/plabonviva/${keyword}`)
+    .then(res => res.json())
+    .then(data => {
+      visitorDisplay.innerText = `VIEWS: ${data.value}`;
+    })
+    .catch(() => {
+      // Fallback if API fails
+      visitorDisplay.innerText = `SESSION: LIVE`;
+    });
 }
 
-/* Data Parsing */
+/* Data Parsing Logic */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -208,7 +216,7 @@ vivaData.forEach(item => {
   });
 });
 
-/* Render State */
+/* State-Based Rendering */
 function renderSections() {
   const fragment = document.createDocumentFragment();
   dataSlides.forEach((d) => {
@@ -225,7 +233,7 @@ function renderSections() {
   updateStats(dataSlides.length);
 }
 
-/* Logic Updates */
+/* Logic: Results Counter */
 function updateStats(count) {
   stats.innerText = `${count} Results`;
 }
@@ -250,7 +258,8 @@ document.getElementById("search").addEventListener("input", function() {
   window.scrollTo({ top: 0, behavior: "auto" });
 });
 
-getViews();
+// Run
+trackVisitor();
 renderSections();
 </script>
 
