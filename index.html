@@ -24,29 +24,34 @@ body.dark {
 
 body {
     margin: 0;
-    font-family: "Inter", "Segoe UI", sans-serif;
+    font-family: "Inter", sans-serif;
     background: var(--bg);
     color: var(--text);
-    transition: 0.3s;
 }
 
-/* Header */
+/* HEADER */
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 18px 24px;
-    background: var(--card);
-    border-bottom: 1px solid rgba(0,0,0,0.05);
     position: sticky;
     top: 0;
     z-index: 100;
+    background: var(--card);
+    padding: 12px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
-header h1 {
-    font-size: 20px;
+/* TOP ROW */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    font-size: 18px;
     margin: 0;
-    letter-spacing: 0.5px;
 }
 
 .toggle {
@@ -54,65 +59,76 @@ header h1 {
     font-size: 20px;
 }
 
-/* Container */
+/* SEARCH */
+.search-box {
+    width: 100%;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: var(--bg);
+    font-size: 14.5px;
+}
+
+/* CONTENT */
 .container {
     max-width: 850px;
-    margin: 30px auto;
+    margin: 25px auto;
     padding: 0 16px;
 }
 
-/* Card */
 .card {
     background: var(--card);
-    padding: 22px 20px;
-    margin-bottom: 18px;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    transition: 0.2s;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-.card:hover {
-    transform: translateY(-2px);
-}
-
-/* ID */
 .id {
-    font-size: 13px;
-    font-weight: 600;
     color: var(--accent);
-    margin-bottom: 10px;
-    letter-spacing: 1px;
+    font-size: 12px;
+    margin-bottom: 8px;
+    font-weight: bold;
 }
 
-/* Text */
 .text {
-    font-size: 16.5px;
-    line-height: 1.75;
-    letter-spacing: 0.2px;
-    color: var(--text);
+    font-size: 16px;
+    line-height: 1.7;
 }
 
-/* Scroll bar */
+/* RIGHT PROGRESS */
 #progressBar {
     position: fixed;
     top: 0;
     right: 0;
     width: 5px;
     height: 0%;
-    background: linear-gradient(to bottom, #3b82f6, #60a5fa);
+    background: var(--accent);
+}
+
+/* LEFT SCROLL SLIDER */
+#scrollSlider {
+    position: fixed;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    width: 200px;
     z-index: 200;
-    border-radius: 10px;
 }
 
-/* Improve readability for long study */
-.text::selection {
-    background: #c7d2fe;
+#scrollSlider input {
+    width: 100%;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
-    .text {
-        font-size: 15.5px;
+/* MOBILE */
+@media(max-width:600px){
+    #scrollSlider {
+        display: none;
     }
 }
 </style>
@@ -122,9 +138,20 @@ header h1 {
 
 <div id="progressBar"></div>
 
+<!-- LEFT SCROLL -->
+<div id="scrollSlider">
+    <input type="range" min="0" max="100" value="0" id="slider">
+</div>
+
 <header>
-    <h1>📚 SO23 Viva Experiences</h1>
-    <div class="toggle" onclick="toggleTheme()" id="icon">🌙</div>
+    <div class="top-bar">
+        <h1>📚 SO-23 Viva Experiences</h1>
+        <div class="toggle" onclick="toggleTheme()" id="icon">🌙</div>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="search" placeholder="🔍 Search viva questions...">
+    </div>
 </header>
 
 <div class="container" id="content"></div>
@@ -133,37 +160,56 @@ header h1 {
 import { vivaData } from './v.data.js';
 
 const container = document.getElementById("content");
+let allCards = [];
 
-vivaData.forEach(item => {
-    let raw = item.questions;
+function loadData() {
+    vivaData.forEach(item => {
+        let raw = item.questions;
+        let entries = raw.split("},").map(e => e + "}");
 
-    let entries = raw.split("},").map(e => e + "}");
+        entries.forEach(entry => {
+            try {
+                let idMatch = entry.match(/"id":\s*(\d+)/);
+                let textMatch = entry.match(/"text":\s*"([^"]+)/);
+                let lengthMatch = entry.match(/"length":\s*(\d+)/);
 
-    entries.forEach(entry => {
-        try {
-            let idMatch = entry.match(/"id":\s*(\d+)/);
-            let textMatch = entry.match(/"text":\s*"([^"]+)/);
-            let lengthMatch = entry.match(/"length":\s*(\d+)/);
+                if (!idMatch || !textMatch || !lengthMatch) return;
 
-            if (!idMatch || !textMatch || !lengthMatch) return;
+                let id = idMatch[1];
+                let text = textMatch[1];
+                let length = parseInt(lengthMatch[1]);
 
-            let id = idMatch[1];
-            let text = textMatch[1];
-            let length = parseInt(lengthMatch[1]);
+                if (length > 350) {
+                    let div = document.createElement("div");
+                    div.className = "card";
+                    div.dataset.text = text.toLowerCase();
 
-            if (length > 350) {
-                let div = document.createElement("div");
-                div.className = "card";
+                    div.innerHTML = `
+                        <div class="id">ID • ${id}</div>
+                        <div class="text">${text}</div>
+                    `;
 
-                div.innerHTML = `
-                    <div class="id">VIVA ID • ${id}</div>
-                    <div class="text">${text}</div>
-                `;
+                    container.appendChild(div);
+                    allCards.push(div);
+                }
 
-                container.appendChild(div);
-            }
+            } catch(e){}
+        });
+    });
+}
 
-        } catch (err) {}
+loadData();
+
+/* SEARCH */
+document.getElementById("search").addEventListener("input", function(){
+    let value = this.value.toLowerCase();
+
+    allCards.forEach(card => {
+        if (card.dataset.text.includes(value)) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
     });
 });
 </script>
@@ -175,12 +221,21 @@ function toggleTheme() {
         document.body.classList.contains("dark") ? "☀️" : "🌙";
 }
 
-// Scroll progress
+/* RIGHT PROGRESS */
 window.onscroll = () => {
     let scroll = document.documentElement.scrollTop;
     let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    document.getElementById("progressBar").style.height = (scroll / height) * 100 + "%";
+    let percent = (scroll / height) * 100;
+
+    document.getElementById("progressBar").style.height = percent + "%";
+    document.getElementById("slider").value = percent;
 };
+
+/* LEFT SLIDER CONTROL */
+document.getElementById("slider").addEventListener("input", function(){
+    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    document.documentElement.scrollTop = (this.value / 100) * height;
+});
 </script>
 
 </body>
