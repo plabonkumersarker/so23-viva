@@ -14,6 +14,7 @@
     --text-secondary: #94a3b8;
     --accent: #3b82f6;        
     --border: #334155;
+    --success: #2d6a4f;
   }
 
   * { box-sizing: border-box; }
@@ -24,7 +25,6 @@
     background-color: var(--bg-main);
     color: var(--text-primary);
     line-height: 1.6;
-    overflow-x: hidden;
   }
 
   header {
@@ -53,25 +53,32 @@
     color: var(--text-secondary);
   }
 
-  .visitor-counter {
-    font-size: 10px;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 700;
+  /* Professional Visitor Counter (Example Style) */
+  #visitorWidget {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
   }
 
-  .visitor-counter::before {
-    content: '';
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    background: var(--accent);
+  .vc-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    box-shadow: 0 0 5px var(--accent);
+    background: var(--success);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.9); }
+  }
+
+  #vcTotal {
+    font-weight: 700;
+    color: var(--accent);
   }
 
   .search-container {
@@ -133,8 +140,6 @@
   .content-text {
     font-size: 18px;
     color: var(--text-primary);
-    user-select: text;
-    -webkit-user-select: text;
     white-space: pre-wrap;
   }
 
@@ -146,7 +151,6 @@
   }
 
   @media(max-width: 600px) {
-    .content-text { font-size: 16px; }
     header { padding: 10px; }
     .viva-section { padding: 30px 0; }
   }
@@ -162,7 +166,11 @@
   </div>
   <div class="stats-container">
     <div class="counter-text" id="stats">0 Results</div>
-    <div class="visitor-counter" id="visitorCount">VIEWS: ...</div>
+    <div id="visitorWidget">
+      <span class="vc-dot"></span>
+      <span id="vcTotal">...</span>
+      <span class="vc-lbl">visitors</span>
+    </div>
   </div>
 </header>
 
@@ -176,32 +184,44 @@ import { vivaData } from './v.data.js';
 const mainContent = document.getElementById("mainContent");
 const stats = document.getElementById("stats");
 const noResults = document.getElementById("noResults");
-const visitorDisplay = document.getElementById("visitorCount");
-
 let dataSlides = [];
 
-/* --- ROBUST VISITOR TRACKING (NO SETUP) --- */
-function trackVisitor() {
-  // Use a reliable keyword-based hit image
-  const keyword = "plabon-viva-experience-2026";
-  const img = new Image();
-  // Using a tracking pixel that actually works
-  img.src = `https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fplabon-viva%2F${keyword}&count_bg=%233B82F6&title_bg=%231E293B&icon=&icon_color=%23E7E7E7&title=views&edge_flat=false`;
-  
-  // Since we are using an image badge, we extract a dummy number or just show "Active"
-  // If you want a REAL number, use this logic to fetch the specific JSON:
-  fetch(`https://api.countapi.xyz/hit/plabonviva/${keyword}`)
-    .then(res => res.json())
-    .then(data => {
-      visitorDisplay.innerText = `VIEWS: ${data.value}`;
-    })
-    .catch(() => {
-      // Fallback if API fails
-      visitorDisplay.innerText = `SESSION: LIVE`;
-    });
-}
+/* --- 1. VISITOR COUNTER IMPLEMENTATION --- */
+(function() {
+  const KEY = 'so23-viva-experience-counter-v1';
+  const SESSION_KEY = 'so23_viva_session_active';
+  const el = document.getElementById('vcTotal');
+  if (!el) return;
 
-/* Data Parsing Logic */
+  // Animation for the numbers
+  function rollUp(target) {
+    let start = 0, dur = 1200, t0 = performance.now();
+    function tick(now) {
+      let p = Math.min((now - t0) / dur, 1);
+      let e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(start + (target - start) * e).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = target.toLocaleString();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  const counted = sessionStorage.getItem(SESSION_KEY);
+  // If user already visited this session, just GET. If new session, HIT to increment.
+  const endpoint = counted
+    ? 'https://countapi.mileshilliard.com/api/v1/get/' + KEY
+    : 'https://countapi.mileshilliard.com/api/v1/hit/' + KEY;
+
+  fetch(endpoint)
+    .then(r => r.json())
+    .then(data => {
+      if (!counted) sessionStorage.setItem(SESSION_KEY, '1');
+      rollUp(parseInt(data.value) || 0);
+    })
+    .catch(() => { el.textContent = '—'; });
+})();
+
+/* --- 2. DATA PARSING --- */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -216,7 +236,7 @@ vivaData.forEach(item => {
   });
 });
 
-/* State-Based Rendering */
+/* --- 3. RENDERING (Using Document Fragments for speed) --- */
 function renderSections() {
   const fragment = document.createDocumentFragment();
   dataSlides.forEach((d) => {
@@ -233,7 +253,7 @@ function renderSections() {
   updateStats(dataSlides.length);
 }
 
-/* Logic: Results Counter */
+/* --- 4. STATE-BASED LOGIC --- */
 function updateStats(count) {
   stats.innerText = `${count} Results`;
 }
@@ -258,8 +278,6 @@ document.getElementById("search").addEventListener("input", function() {
   window.scrollTo({ top: 0, behavior: "auto" });
 });
 
-// Run
-trackVisitor();
 renderSections();
 </script>
 
