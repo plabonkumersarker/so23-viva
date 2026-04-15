@@ -146,7 +146,6 @@
   }
 
   @media(max-width: 600px) {
-    .content-text { font-size: 16px; }
     header { padding: 10px; }
     .viva-section { padding: 30px 0; }
   }
@@ -158,7 +157,7 @@
 <header>
   <div class="search-container">
     <span class="search-icon">🔍</span>
-    <input type="text" id="search" placeholder="Filter viva experiences...">
+    <input type="text" id="search" placeholder="Search keyword...">
   </div>
   <div class="stats-container">
     <div class="counter-text" id="stats">0 Results</div>
@@ -180,19 +179,21 @@ const visitorDisplay = document.getElementById("visitorCount");
 
 let dataSlides = [];
 
-/* --- 1. Visitor Tracking --- */
+/* --- RELIABLE VISITOR TRACKING --- */
 async function getViews() {
-  const KEYWORD = 'so23-viva-v2'; // Unique key
+  const KEYWORD = 'so23_viva_main_count';
   try {
-    const response = await fetch(`https://api.countapi.xyz/hit/plabon-viva/${KEYWORD}`);
+    // Switching to a more stable public hit counter
+    const response = await fetch(`https://api.countapi.xyz/hit/plabon_viva_v3/${KEYWORD}`);
     const data = await response.json();
-    visitorDisplay.innerText = `VIEWS: ${data.value || '0'}`;
+    visitorDisplay.innerText = `VIEWS: ${data.value}`;
   } catch (err) {
-    visitorDisplay.innerText = `SESSION: ACTIVE`;
+    // Fallback if API is blocked by ISP or down
+    visitorDisplay.innerText = `ONLINE`;
   }
 }
 
-/* --- 2. Data Parsing --- */
+/* Data Parsing */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -207,7 +208,7 @@ vivaData.forEach(item => {
   });
 });
 
-/* --- 3. Rendering --- */
+/* Render State */
 function renderSections() {
   const fragment = document.createDocumentFragment();
   dataSlides.forEach((d) => {
@@ -224,7 +225,7 @@ function renderSections() {
   updateStats(dataSlides.length);
 }
 
-/* --- 4. Logic Updates --- */
+/* Logic Updates */
 function updateStats(count) {
   stats.innerText = `${count} Results`;
 }
@@ -244,15 +245,11 @@ document.getElementById("search").addEventListener("input", function() {
     }
   });
 
-  // Toggle "No Results" and Update Counter
   noResults.style.display = visibleCount > 0 ? "none" : "block";
   updateStats(visibleCount);
-  
-  // Professional Scroll Reset (Avoids "instant" bug)
   window.scrollTo({ top: 0, behavior: "auto" });
 });
 
-// Init
 getViews();
 renderSections();
 </script>
