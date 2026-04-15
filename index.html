@@ -4,106 +4,186 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SO23 Viva Slides</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-body {
-  margin:0;
-  font-family:"Segoe UI", sans-serif;
-  background: radial-gradient(circle at top, #0a0a1a, #000);
-  color:#f1f5f9;
-  overflow:hidden;
-}
+  :root {
+    --bg-main: #0f172a;       /* Deep Slate */
+    --bg-card: #1e293b;       /* Lighter Slate */
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent: #3b82f6;        /* Professional Blue */
+    --border: #334155;
+  }
 
-/* Slides */
-.slides {
-  display:flex;
-  flex-direction:column;
-  height:100vh;
-  transition:transform .7s ease;
-}
+  * { box-sizing: border-box; }
 
-.slide {
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:30px;
-  text-align:center;
-}
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    overflow: hidden;
+  }
 
-.card {
-  max-width:850px;
-}
+  /* Header & Search */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    z-index: 20;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
 
-.id {
-  color:#7dd3fc;
-  font-size:18px;
-  margin-bottom:15px;
-}
+  .counter {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+  }
 
-.text {
-  font-size:22px;
-  line-height:1.7;
-}
+  .search-container {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+  }
 
-/* SEARCH */
-.search {
-  position:fixed;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:20;
-  width:90%;
-  max-width:500px;
-}
+  .search-container input {
+    width: 100%;
+    padding: 10px 16px 10px 36px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+  }
 
-.search input {
-  width:100%;
-  padding:12px;
-  border-radius:30px;
-  border:none;
-  outline:none;
-  font-size:15px;
-}
+  .search-container input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
 
-/* DRAG BAR */
-.drag-bar {
-  position: fixed;
-  top: 50%;
-  right: 15px;
-  transform: translateY(-50%);
-  width: 14px;
-  height: 60%;
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-}
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+  }
 
-.drag-knob {
-  width: 30px;
-  height: 30px;
-  background: #7dd3fc;
-  border-radius:50%;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-}
+  /* Slides */
+  .slides {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
 
-/* Mobile text adjust */
-@media(max-width:600px){
-  .text { font-size:18px; }
-}
+  .slide {
+    flex: 0 0 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 40px 40px; /* Top padding accounts for header */
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 50px;
+    max-width: 850px;
+    width: 100%;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+  }
+
+  .id-badge {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .text {
+    font-size: 22px;
+    line-height: 1.7;
+    font-weight: 400;
+    color: var(--text-primary);
+  }
+
+  /* Elegant Drag Bar */
+  .drag-bar-container {
+    position: fixed;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 40vh;
+    width: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    z-index: 10;
+  }
+
+  .drag-knob {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 40px;
+    background: var(--text-secondary);
+    border-radius: 6px;
+    cursor: grab;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .drag-knob:hover {
+    background: var(--text-primary);
+  }
+
+  .drag-knob:active {
+    cursor: grabbing;
+    background: var(--accent);
+    transform: translateX(-50%) scale(1.2);
+  }
+
+  /* Mobile Adjustments */
+  @media(max-width: 768px) {
+    header { flex-direction: column; gap: 15px; padding: 15px 20px; }
+    .slide { padding: 100px 20px 20px; }
+    .text { font-size: 18px; }
+    .card { padding: 30px; }
+    .drag-bar-container { right: 10px; }
+  }
 </style>
 </head>
 
 <body>
 
-<div class="search">
-  <input type="text" id="search" placeholder="🔍 Search viva...">
-</div>
+<header>
+  <div class="counter" id="slideCounter">Slide 1 of 0</div>
+  <div class="search-container">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search" placeholder="Search viva questions...">
+  </div>
+</header>
 
 <div class="slides" id="slides"></div>
 
-<div class="drag-bar" id="dragBar">
+<div class="drag-bar-container" id="dragBar">
   <div class="drag-knob" id="dragKnob"></div>
 </div>
 
@@ -111,112 +191,123 @@ body {
 import { vivaData } from './v.data.js';
 
 const slidesEl = document.getElementById("slides");
+const counterEl = document.getElementById("slideCounter");
 let dataSlides = [];
 
-/* Parse Data */
-vivaData.forEach(item=>{
+/* Parse Data (Kept your original logic to ensure compatibility) */
+vivaData.forEach(item => {
   let raw = item.questions;
-  let entries = raw.split("},").map(e=>e+"}");
+  let entries = raw.split("},").map(e => e + "}");
 
-  entries.forEach(entry=>{
+  entries.forEach(entry => {
     let id = entry.match(/"id":\s*(\d+)/);
     let text = entry.match(/"text":\s*"([^"]+)/);
     let length = entry.match(/"length":\s*(\d+)/);
 
-    if(id && text && length && parseInt(length[1])>350){
+    if (id && text && length && parseInt(length[1]) > 350) {
       dataSlides.push({
-        id:id[1],
-        text:text[1]
+        id: id[1],
+        text: text[1]
       });
     }
   });
 });
 
 /* Render Slides */
-dataSlides.forEach(d=>{
+dataSlides.forEach(d => {
   let s = document.createElement("section");
-  s.className="slide";
-
+  s.className = "slide";
   s.innerHTML = `
     <div class="card">
-      <div class="id">VIVA ID • ${d.id}</div>
+      <div class="id-badge">VIVA ID • ${d.id}</div>
       <div class="text">${d.text}</div>
     </div>
   `;
-
   slidesEl.appendChild(s);
 });
 
-</script>
+/* --- Navigation & Interactivity --- */
+let index = 0;
+let slides = document.querySelectorAll(".slide");
+const knob = document.getElementById("dragKnob");
+const bar = document.getElementById("dragBar");
 
-<script>
-let index=0;
-let slides=document.querySelectorAll(".slide");
-const slidesEl=document.getElementById("slides");
-const knob=document.getElementById("dragKnob");
-const bar=document.getElementById("dragBar");
-
-/* Update Slide */
-function update(){
-  slidesEl.style.transform=`translateY(-${index*100}vh)`;
-  let h=bar.clientHeight;
-  knob.style.top=(index/slides.length*h)+"px";
+function update() {
+  if (slides.length === 0) return;
+  // Slide position
+  slidesEl.style.transform = `translateY(-${index * 100}vh)`;
+  
+  // Knob position
+  let h = bar.clientHeight - knob.clientHeight; 
+  knob.style.top = (index / (slides.length - 1) * h) + "px";
+  
+  // Counter update
+  counterEl.innerText = `Slide ${index + 1} of ${slides.length}`;
 }
 
-/* Navigation */
-function next(){ if(index<slides.length-1) index++; update(); }
-function prev(){ if(index>0) index--; update(); }
+function next() { if(index < slides.length - 1) index++; update(); }
+function prev() { if(index > 0) index--; update(); }
+
+/* Keyboard Navigation */
+window.addEventListener("keydown", (e) => {
+  if (document.activeElement.tagName === "INPUT") return; // Don't trigger while searching
+  if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
+  if (e.key === "ArrowUp" || e.key === "ArrowLeft") prev();
+});
 
 /* Wheel */
-window.addEventListener("wheel",e=>{
-  e.deltaY>0?next():prev();
+window.addEventListener("wheel", e => {
+  e.deltaY > 0 ? next() : prev();
 });
 
 /* Touch */
-let startY=null;
-window.addEventListener("touchstart",e=>startY=e.touches[0].clientY);
-window.addEventListener("touchend",e=>{
-  let dy=e.changedTouches[0].clientY-startY;
-  if(Math.abs(dy)>40) dy<0?next():prev();
+let startY = null;
+window.addEventListener("touchstart", e => startY = e.touches[0].clientY);
+window.addEventListener("touchend", e => {
+  if (!startY) return;
+  let dy = e.changedTouches[0].clientY - startY;
+  if (Math.abs(dy) > 40) dy < 0 ? next() : prev();
+  startY = null;
 });
 
 /* Drag */
-let dragging=false;
+let dragging = false;
 
-knob.addEventListener("mousedown",()=>dragging=true);
-window.addEventListener("mouseup",()=>dragging=false);
+knob.addEventListener("mousedown", () => dragging = true);
+window.addEventListener("mouseup", () => dragging = false);
+knob.addEventListener("touchstart", () => dragging = true);
+window.addEventListener("touchend", () => dragging = false);
 
-knob.addEventListener("touchstart",()=>dragging=true);
-window.addEventListener("touchend",()=>dragging=false);
+window.addEventListener("mousemove", move);
+window.addEventListener("touchmove", move, {passive: false});
 
-window.addEventListener("mousemove",move);
-window.addEventListener("touchmove",move);
+function move(e) {
+  if (!dragging) return;
+  if (e.type === 'touchmove') e.preventDefault(); // Prevent native scrolling while dragging
 
-function move(e){
-  if(!dragging) return;
+  let rect = bar.getBoundingClientRect();
+  let y = e.touches ? e.touches[0].clientY : e.clientY;
 
-  let rect=bar.getBoundingClientRect();
-  let y=e.touches?e.touches[0].clientY:e.clientY;
+  let pos = y - rect.top;
+  pos = Math.max(0, Math.min(rect.height, pos));
 
-  let pos=y-rect.top;
-  pos=Math.max(0,Math.min(rect.height,pos));
-
-  index=Math.floor(pos/rect.height*slides.length);
+  index = Math.floor((pos / rect.height) * (slides.length - 1));
   update();
 }
 
 /* SEARCH */
-document.getElementById("search").addEventListener("input",function(){
-  let val=this.value.toLowerCase();
+document.getElementById("search").addEventListener("input", function() {
+  let val = this.value.toLowerCase();
+  if (!val) return;
 
-  let found=dataSlides.findIndex(d=>d.text.toLowerCase().includes(val));
-
-  if(found!==-1){
-    index=found;
+  let found = dataSlides.findIndex(d => d.text.toLowerCase().includes(val));
+  if (found !== -1) {
+    index = found;
     update();
   }
 });
 
+// Initial load
 update();
 </script>
 
