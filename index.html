@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SO23 Viva Experiences</title>
+<title>SO23 Viva Filter</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -27,7 +27,6 @@
     overflow-x: hidden;
   }
 
-  /* Sticky Header */
   header {
     position: sticky;
     top: 0;
@@ -36,7 +35,7 @@
     align-items: center;
     padding: 12px 20px;
     z-index: 100;
-    background: rgba(15, 23, 42, 0.9);
+    background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
   }
@@ -50,31 +49,33 @@
 
   .search-container {
     position: relative;
-    width: 60%;
-    max-width: 300px;
+    width: 65%;
+    max-width: 400px;
   }
 
   .search-container input {
     width: 100%;
-    padding: 8px 12px 8px 32px;
-    border-radius: 6px;
+    padding: 10px 12px 10px 36px;
+    border-radius: 8px;
     border: 1px solid var(--border);
-    background: var(--bg-main);
+    background: #1e293b;
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 15px;
     outline: none;
+    transition: border-color 0.2s;
   }
+
+  .search-container input:focus { border-color: var(--accent); }
 
   .search-icon {
     position: absolute;
-    left: 10px;
+    left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 12px;
-    opacity: 0.6;
+    font-size: 14px;
+    opacity: 0.5;
   }
 
-  /* Continuous Scroll Layout */
   .container {
     max-width: 800px;
     margin: 0 auto;
@@ -82,15 +83,16 @@
   }
 
   .viva-section {
-    min-height: 80dvh; /* Ensures focus on one at a time while scrolling */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     padding: 40px 0;
     border-bottom: 1px solid var(--border);
+    /* Standard smooth reveal */
+    animation: fadeIn 0.3s ease;
   }
 
-  .viva-section:last-child { border-bottom: none; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
   .id-badge {
     display: inline-block;
@@ -101,60 +103,54 @@
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 16px;
-    align-self: flex-start;
   }
 
   .content-text {
-    font-size: 19px;
+    font-size: 18px;
     color: var(--text-primary);
     user-select: text;
     -webkit-user-select: text;
-    white-space: pre-wrap; /* Keeps formatting from data */
+    white-space: pre-wrap;
   }
 
-  /* Floating Progress Bar */
-  .progress-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: var(--accent);
-    width: 0%;
-    z-index: 101;
-    transition: width 0.1s ease;
+  #noResults {
+    display: none;
+    text-align: center;
+    padding: 100px 20px;
+    color: var(--text-secondary);
   }
 
   @media(max-width: 600px) {
-    .content-text { font-size: 17px; }
-    header { padding: 10px 15px; }
-    .viva-section { min-height: 90dvh; padding: 30px 0; }
+    .content-text { font-size: 16px; }
+    header { padding: 10px; }
+    .viva-section { padding: 30px 0; }
   }
 </style>
 </head>
 
 <body>
 
-<div class="progress-bar" id="progress"></div>
-
 <header>
   <div class="search-container">
     <span class="search-icon">🔍</span>
-    <input type="text" id="search" placeholder="Search...">
+    <input type="text" id="search" placeholder="Filter by keyword...">
   </div>
-  <div class="counter" id="scrollStats">Reading 1 of 0</div>
+  <div class="counter" id="stats">0 Experiences</div>
 </header>
 
-<main class="container" id="mainContent"></main>
+<main class="container" id="mainContent">
+  <div id="noResults">No experiences match your search.</div>
+</main>
 
 <script type="module">
 import { vivaData } from './v.data.js';
 
 const mainContent = document.getElementById("mainContent");
-const scrollStats = document.getElementById("scrollStats");
-const progressBar = document.getElementById("progress");
+const stats = document.getElementById("stats");
+const noResults = document.getElementById("noResults");
 let dataSlides = [];
 
-/* Parse Data */
+/* 1. Parse Data */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
@@ -169,54 +165,53 @@ vivaData.forEach(item => {
   });
 });
 
-/* Render Sections */
-dataSlides.forEach((d, index) => {
-  let section = document.createElement("article");
-  section.className = "viva-section";
-  section.id = `viva-${index}`;
-  section.innerHTML = `
-    <div class="id-badge">VIVA ID • ${d.id}</div>
-    <div class="content-text">${d.text}</div>
-  `;
-  mainContent.appendChild(section);
-});
+/* 2. Render Initial State */
+function renderSections() {
+  dataSlides.forEach((d, index) => {
+    let section = document.createElement("article");
+    section.className = "viva-section";
+    section.setAttribute("data-text", d.text.toLowerCase());
+    section.innerHTML = `
+      <div class="id-badge">VIVA ID • ${d.id}</div>
+      <div class="content-text">${d.text}</div>
+    `;
+    mainContent.appendChild(section);
+  });
+  updateCount();
+}
 
-/* Update Progress & Counter on Scroll */
-const sections = document.querySelectorAll(".viva-section");
-window.addEventListener("scroll", () => {
-  // Update Progress Bar
-  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  const scrolled = (winScroll / height) * 100;
-  progressBar.style.width = scrolled + "%";
+/* 3. Helper: Update Header Count */
+function updateCount() {
+  const visible = document.querySelectorAll(".viva-section[style='display: block;'], .viva-section:not([style])").length;
+  stats.innerText = `${visible} Results`;
+}
 
-  // Update Section Counter
-  let current = 0;
-  sections.forEach((section, i) => {
-    const rect = section.getBoundingClientRect();
-    if (rect.top < window.innerHeight / 2) {
-      current = i + 1;
+/* 4. Filter Logic */
+document.getElementById("search").addEventListener("input", function() {
+  const query = this.value.toLowerCase().trim();
+  const allSections = document.querySelectorAll(".viva-section");
+  let foundAny = false;
+
+  allSections.forEach(section => {
+    const text = section.getAttribute("data-text");
+    if (text.includes(query)) {
+      section.style.display = "block";
+      foundAny = true;
+    } else {
+      section.style.display = "none";
     }
   });
-  if(current > 0) {
-    scrollStats.innerText = `Experience ${current} of ${dataSlides.length}`;
-  }
+
+  // Show/Hide "No Results" message
+  noResults.style.display = foundAny ? "none" : "block";
+  
+  // Jump to top on search for better UX
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  updateCount();
 });
 
-/* Search Functionality - Scroll to result */
-document.getElementById("search").addEventListener("input", function() {
-  const val = this.value.toLowerCase();
-  if (!val) return;
-
-  const foundIndex = dataSlides.findIndex(d => d.text.toLowerCase().includes(val));
-  if (foundIndex !== -1) {
-    const target = document.getElementById(`viva-${foundIndex}`);
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-});
-
-// Initial count
-scrollStats.innerText = `Total: ${dataSlides.length} Experiences`;
+// Run on load
+renderSections();
 </script>
 
 </body>
