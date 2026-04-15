@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SO23 Viva Slides</title>
+<title>SO23 Viva Experiences</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -23,340 +23,200 @@
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-main);
     color: var(--text-primary);
-    overflow: hidden;
-    /* Use dynamic viewport height to fix mobile browser UI clipping */
-    height: 100dvh; 
+    line-height: 1.6;
+    overflow-x: hidden;
   }
 
-  /* Header & Search */
+  /* Sticky Header */
   header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 40px;
-    z-index: 20;
-    background: rgba(15, 23, 42, 0.85);
+    padding: 12px 20px;
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.9);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
   }
 
   .counter {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
-    letter-spacing: 1px;
+    white-space: nowrap;
   }
 
   .search-container {
     position: relative;
-    width: 100%;
-    max-width: 400px;
+    width: 60%;
+    max-width: 300px;
   }
 
   .search-container input {
     width: 100%;
-    padding: 10px 16px 10px 36px;
+    padding: 8px 12px 8px 32px;
     border-radius: 6px;
     border: 1px solid var(--border);
     background: var(--bg-main);
     color: var(--text-primary);
     font-size: 14px;
     outline: none;
-    transition: all 0.2s ease;
-  }
-
-  .search-container input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   }
 
   .search-icon {
     position: absolute;
-    left: 12px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 14px;
+    font-size: 12px;
+    opacity: 0.6;
   }
 
-  /* Slides Container */
-  .slides {
+  /* Continuous Scroll Layout */
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .viva-section {
+    min-height: 80dvh; /* Ensures focus on one at a time while scrolling */
     display: flex;
     flex-direction: column;
-    height: 100dvh;
-    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  .slide {
-    flex: 0 0 100dvh;
-    display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 80px 40px 30px; 
+    padding: 40px 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  /* Scrollable Card */
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 40px;
-    max-width: 850px;
-    width: 100%;
-    /* Leaves room for header and bottom edge on mobile */
-    max-height: calc(100dvh - 120px); 
-    overflow-y: auto; 
-    overscroll-behavior: contain; /* Prevents scrolling the background */
-    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-  }
-
-  /* Custom Scrollbar for Card */
-  .card::-webkit-scrollbar {
-    width: 8px;
-  }
-  .card::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .card::-webkit-scrollbar-thumb {
-    background-color: var(--border);
-    border-radius: 10px;
-  }
+  .viva-section:last-child { border-bottom: none; }
 
   .id-badge {
     display: inline-block;
     background: rgba(59, 130, 246, 0.1);
     color: var(--accent);
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 600;
-    margin-bottom: 20px;
-    letter-spacing: 0.5px;
+    margin-bottom: 16px;
+    align-self: flex-start;
   }
 
-  .text {
-    font-size: 20px;
-    line-height: 1.7;
-    font-weight: 400;
+  .content-text {
+    font-size: 19px;
     color: var(--text-primary);
-    /* Guarantee text selection works on mobile */
     user-select: text;
     -webkit-user-select: text;
+    white-space: pre-wrap; /* Keeps formatting from data */
   }
 
-  /* Elegant Drag Bar */
-  .drag-bar-container {
+  /* Floating Progress Bar */
+  .progress-bar {
     position: fixed;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 40vh;
-    width: 4px;
-    background: var(--border);
-    border-radius: 4px;
-    z-index: 10;
-  }
-
-  .drag-knob {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 10px;
-    height: 40px;
-    background: var(--text-secondary);
-    border-radius: 6px;
-    cursor: grab;
-    transition: background 0.2s, transform 0.2s;
-    /* Prevent default touch actions on the knob itself */
-    touch-action: none; 
-  }
-
-  .drag-knob:hover {
-    background: var(--text-primary);
-  }
-
-  .drag-knob:active {
-    cursor: grabbing;
+    bottom: 0;
+    left: 0;
+    height: 3px;
     background: var(--accent);
-    transform: translateX(-50%) scale(1.2);
+    width: 0%;
+    z-index: 101;
+    transition: width 0.1s ease;
   }
 
-  /* Mobile Adjustments */
-  @media(max-width: 768px) {
-    header { flex-direction: column; gap: 12px; padding: 12px 20px; }
-    .slide { padding: 100px 20px 20px; }
-    .text { font-size: 16px; }
-    .card { padding: 25px; max-height: calc(100dvh - 140px); }
-    /* Hide the scroll bar on very small screens to save space, but rely on horizontal swipe */
-    .drag-bar-container { display: none; } 
+  @media(max-width: 600px) {
+    .content-text { font-size: 17px; }
+    header { padding: 10px 15px; }
+    .viva-section { min-height: 90dvh; padding: 30px 0; }
   }
 </style>
 </head>
 
 <body>
 
+<div class="progress-bar" id="progress"></div>
+
 <header>
-  <div class="counter" id="slideCounter">Slide 1 of 0</div>
   <div class="search-container">
     <span class="search-icon">🔍</span>
-    <input type="text" id="search" placeholder="Search viva questions...">
+    <input type="text" id="search" placeholder="Search...">
   </div>
+  <div class="counter" id="scrollStats">Reading 1 of 0</div>
 </header>
 
-<div class="slides" id="slides"></div>
-
-<div class="drag-bar-container" id="dragBar">
-  <div class="drag-knob" id="dragKnob"></div>
-</div>
+<main class="container" id="mainContent"></main>
 
 <script type="module">
 import { vivaData } from './v.data.js';
 
-const slidesEl = document.getElementById("slides");
-const counterEl = document.getElementById("slideCounter");
+const mainContent = document.getElementById("mainContent");
+const scrollStats = document.getElementById("scrollStats");
+const progressBar = document.getElementById("progress");
 let dataSlides = [];
 
 /* Parse Data */
 vivaData.forEach(item => {
   let raw = item.questions;
   let entries = raw.split("},").map(e => e + "}");
-
   entries.forEach(entry => {
     let id = entry.match(/"id":\s*(\d+)/);
     let text = entry.match(/"text":\s*"([^"]+)/);
     let length = entry.match(/"length":\s*(\d+)/);
 
     if (id && text && length && parseInt(length[1]) > 350) {
-      dataSlides.push({
-        id: id[1],
-        text: text[1]
-      });
+      dataSlides.push({ id: id[1], text: text[1] });
     }
   });
 });
 
-/* Render Slides */
-dataSlides.forEach(d => {
-  let s = document.createElement("section");
-  s.className = "slide";
-  s.innerHTML = `
-    <div class="card">
-      <div class="id-badge">VIVA ID • ${d.id}</div>
-      <div class="text">${d.text}</div>
-    </div>
+/* Render Sections */
+dataSlides.forEach((d, index) => {
+  let section = document.createElement("article");
+  section.className = "viva-section";
+  section.id = `viva-${index}`;
+  section.innerHTML = `
+    <div class="id-badge">VIVA ID • ${d.id}</div>
+    <div class="content-text">${d.text}</div>
   `;
-  slidesEl.appendChild(s);
+  mainContent.appendChild(section);
 });
 
-/* --- Navigation & Interactivity --- */
-let index = 0;
-let slides = document.querySelectorAll(".slide");
-const knob = document.getElementById("dragKnob");
-const bar = document.getElementById("dragBar");
+/* Update Progress & Counter on Scroll */
+const sections = document.querySelectorAll(".viva-section");
+window.addEventListener("scroll", () => {
+  // Update Progress Bar
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  progressBar.style.width = scrolled + "%";
 
-function update() {
-  if (slides.length === 0) return;
-  
-  // Slide position
-  slidesEl.style.transform = `translateY(-${index * 100}dvh)`;
-  
-  // Knob position (if visible)
-  if (bar.offsetParent !== null) {
-    let h = bar.clientHeight - knob.clientHeight; 
-    knob.style.top = (index / (slides.length - 1) * h) + "px";
-  }
-  
-  // Counter update
-  counterEl.innerText = `Slide ${index + 1} of ${slides.length}`;
-}
-
-function next() { if(index < slides.length - 1) index++; update(); }
-function prev() { if(index > 0) index--; update(); }
-
-/* Keyboard Navigation */
-window.addEventListener("keydown", (e) => {
-  if (document.activeElement.tagName === "INPUT") return; 
-  if (e.key === "ArrowDown" || e.key === "ArrowRight") next();
-  if (e.key === "ArrowUp" || e.key === "ArrowLeft") prev();
-});
-
-/* Wheel */
-window.addEventListener("wheel", e => {
-  // Only trigger if hovering outside a card, OR if card can't scroll anymore
-  // Simplified for professional use: relying on trackpad/mousewheel mostly.
-  if(!e.target.closest('.card')) {
-    e.deltaY > 0 ? next() : prev();
+  // Update Section Counter
+  let current = 0;
+  sections.forEach((section, i) => {
+    const rect = section.getBoundingClientRect();
+    if (rect.top < window.innerHeight / 2) {
+      current = i + 1;
+    }
+  });
+  if(current > 0) {
+    scrollStats.innerText = `Experience ${current} of ${dataSlides.length}`;
   }
 });
 
-/* Touch - HORIZONTAL SWIPE for Android (Vertical scrolling is left to the browser) */
-let startX = null;
-let startY = null;
-
-window.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
-}, {passive: true});
-
-window.addEventListener("touchend", e => {
-  if (!startX || !startY) return;
-  
-  let dx = e.changedTouches[0].clientX - startX;
-  let dy = e.changedTouches[0].clientY - startY;
-  
-  // Only trigger slide change if swipe is strongly horizontal (protects vertical text scrolling)
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-    dx < 0 ? next() : prev(); // Swipe left for next, swipe right for prev
-  }
-  
-  startX = null;
-  startY = null;
-}, {passive: true});
-
-/* Drag Bar Logic (Desktop) */
-let dragging = false;
-
-knob.addEventListener("mousedown", () => dragging = true);
-window.addEventListener("mouseup", () => dragging = false);
-knob.addEventListener("touchstart", () => dragging = true, {passive: true});
-window.addEventListener("touchend", () => dragging = false, {passive: true});
-
-window.addEventListener("mousemove", move);
-window.addEventListener("touchmove", move, {passive: true});
-
-function move(e) {
-  if (!dragging) return;
-  
-  let rect = bar.getBoundingClientRect();
-  let y = e.touches ? e.touches[0].clientY : e.clientY;
-
-  let pos = y - rect.top;
-  pos = Math.max(0, Math.min(rect.height, pos));
-
-  index = Math.floor((pos / rect.height) * (slides.length - 1));
-  update();
-}
-
-/* SEARCH */
+/* Search Functionality - Scroll to result */
 document.getElementById("search").addEventListener("input", function() {
-  let val = this.value.toLowerCase();
+  const val = this.value.toLowerCase();
   if (!val) return;
 
-  let found = dataSlides.findIndex(d => d.text.toLowerCase().includes(val));
-  if (found !== -1) {
-    index = found;
-    update();
+  const foundIndex = dataSlides.findIndex(d => d.text.toLowerCase().includes(val));
+  if (foundIndex !== -1) {
+    const target = document.getElementById(`viva-${foundIndex}`);
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 });
 
-// Window resize handling to keep alignment correct
-window.addEventListener("resize", update);
-
-// Initial load
-update();
+// Initial count
+scrollStats.innerText = `Total: ${dataSlides.length} Experiences`;
 </script>
 
 </body>
