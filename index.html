@@ -745,9 +745,8 @@
     html.setAttribute('data-theme', next);
     localStorage.setItem('so23-theme', next);
   });
-</script>
-
-/* ── VISITOR COUNTER ── */
+  
+  /* ── VISITOR COUNTER ── */
   (function() {
     const KEY = 'so23-viva-experience-counter-v1';
     const SESSION_KEY = 'so23_viva_session_active';
@@ -779,7 +778,9 @@
       })
       .catch(() => { el.textContent = '—'; });
   })();
-        </script>
+</script>
+
+
 
 
 <script type="module">
@@ -798,6 +799,18 @@ let currentFilter = "";
 
 
 
+/* ── DATA PARSING ─────────────────── */
+vivaData.forEach(item => {
+  let entries = item.questions.split("},").map(e => e + "}");
+  entries.forEach(entry => {
+    let id     = entry.match(/"id":\s*(\d+)/);
+    let text   = entry.match(/"text":\s*"([^"]+)/);
+    let length = entry.match(/"length":\s*(\d+)/);
+    if (id && text && length && parseInt(length[1]) > 350) {
+      dataSlides.push({ id: id[1], text: text[1] });
+    }
+  });
+});
 
 /* ── HIGHLIGHT ────────────────────── */
 function highlight(text, query) {
