@@ -747,6 +747,40 @@
   });
 </script>
 
+/* ── VISITOR COUNTER ── */
+  (function() {
+    const KEY = 'so23-viva-experience-counter-v1';
+    const SESSION_KEY = 'so23_viva_session_active';
+    const el = document.getElementById('vcTotal');
+    if (!el) return;
+
+    function rollUp(target) {
+      let dur = 1400, t0 = performance.now();
+      function tick(now) {
+        let p = Math.min((now - t0) / dur, 1);
+        let e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * e).toLocaleString();
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = target.toLocaleString();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    const counted = sessionStorage.getItem(SESSION_KEY);
+    const endpoint = counted
+      ? 'https://countapi.mileshilliard.com/api/v1/get/' + KEY
+      : 'https://countapi.mileshilliard.com/api/v1/hit/' + KEY;
+
+    fetch(endpoint)
+      .then(r => r.json())
+      .then(d => {
+        if (!counted) sessionStorage.setItem(SESSION_KEY, '1');
+        rollUp(parseInt(d.value) || 0);
+      })
+      .catch(() => { el.textContent = '—'; });
+  })();
+        </script>
+
 
 <script type="module">
 import { vivaData } from './v.data.js';
@@ -762,51 +796,8 @@ let currentFilter = "";
 
 
 
-/* ── VISITOR COUNTER ──────────────── */
-(function() {
-  const KEY         = 'so23-viva-experience-counter-v1';
-  const SESSION_KEY = 'so23_viva_session_active';
-  const el          = document.getElementById('vcTotal');
-  if (!el) return;
 
-  function rollUp(target) {
-    let dur = 1400, t0 = performance.now();
-    function tick(now) {
-      let p = Math.min((now - t0) / dur, 1);
-      let e = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * e).toLocaleString();
-      if (p < 1) requestAnimationFrame(tick);
-      else el.textContent = target.toLocaleString();
-    }
-    requestAnimationFrame(tick);
-  }
 
-  const counted  = sessionStorage.getItem(SESSION_KEY);
-  const endpoint = counted
-    ? 'https://countapi.mileshilliard.com/api/v1/get/'  + KEY
-    : 'https://countapi.mileshilliard.com/api/v1/hit/' + KEY;
-
-  fetch(endpoint)
-    .then(r => r.json())
-    .then(d => {
-      if (!counted) sessionStorage.setItem(SESSION_KEY, '1');
-      rollUp(parseInt(d.value) || 0);
-    })
-    .catch(() => { el.textContent = '—'; });
-})();
-
-/* ── DATA PARSING ─────────────────── */
-vivaData.forEach(item => {
-  let entries = item.questions.split("},").map(e => e + "}");
-  entries.forEach(entry => {
-    let id     = entry.match(/"id":\s*(\d+)/);
-    let text   = entry.match(/"text":\s*"([^"]+)/);
-    let length = entry.match(/"length":\s*(\d+)/);
-    if (id && text && length && parseInt(length[1]) > 350) {
-      dataSlides.push({ id: id[1], text: text[1] });
-    }
-  });
-});
 
 /* ── HIGHLIGHT ────────────────────── */
 function highlight(text, query) {
